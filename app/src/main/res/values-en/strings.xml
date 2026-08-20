@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Abenly</string>
+    <string name="btn_car_maintenance">Car maintenance</string>
+    <string name="btn_back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="maintenance_engine_oil">Engine oil change</string>
+    <string name="maintenance_technical_control">Technical control</string>
+    <string name="maintenance_tires">Tires</string>
+    <string name="maintenance_brakes">Brakes</string>
+    <string name="maintenance_wipers">Windshield wipers</string>
+    <string name="maintenance_battery">Car battery</string>
+    <string name="last_action">Last action</string>
+    <string name="select">Select</string>
+</resources>

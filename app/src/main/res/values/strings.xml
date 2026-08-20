@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">Abenly</string>
+    <string name="app_name" translatable="false">Abenly</string>
+    <string name="btn_car_maintenance">Entretien voiture</string>
+    <string name="btn_back">Retour</string>
+    <string name="cancel">Annuler</string>
+    <string name="maintenance_engine_oil">Vidange moteur</string>
+    <string name="maintenance_technical_control">Contrôle technique</string>
+    <string name="maintenance_tires">Pneus</string>
+    <string name="maintenance_brakes">Freins</string>
+    <string name="maintenance_wipers">Essuie-glaces</string>
+    <string name="maintenance_battery">Batterie</string>
+    <string name="last_action">Dernière Action</string>
+    <string name="select">Sélectionner</string>
 </resources>
