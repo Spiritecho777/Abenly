@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -19,7 +20,16 @@ fun AbenlyTopAppBar(
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val currentLanguage = configuration.locales.get(0).language.lowercase()
+
+    // Mémorise la langue pour éviter de relire system locale à chaque recomposition
+    val currentLanguage = remember(configuration) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            configuration.locales.get(0).language.lowercase()
+        } else {
+            @Suppress("DEPRECATION")
+            configuration.locale.language.lowercase()
+        }
+    }
 
     TopAppBar(
         title = { Text(text = stringResource(id = titleRes)) },
