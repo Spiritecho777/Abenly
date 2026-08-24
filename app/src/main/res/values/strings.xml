@@ -11,4 +11,7 @@
     <string name="maintenance_battery">Batterie</string>
     <string name="last_action">Dernière Action</string>
     <string name="select">Sélectionner</string>
+    <string name="mois">Mois</string>
+    <string name="maintenance_done">Fait : %1$s</string>
+	<string name="maintenance_limit">Limite : %1$s</string>
 </resources>

@@ -12,4 +12,7 @@
     <string name="maintenance_battery">Car battery</string>
     <string name="last_action">Last action</string>
     <string name="select">Select</string>
+    <string name="mois">Month</string>
+	<string name="maintenance_done">Done: %1$s</string>
+	<string name="maintenance_limit">Limit: %1$s</string>
 </resources>

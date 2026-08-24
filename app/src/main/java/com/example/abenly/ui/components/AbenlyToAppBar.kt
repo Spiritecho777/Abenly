@@ -1,5 +1,6 @@
 package com.example.abenly.ui.components
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -21,13 +22,18 @@ fun AbenlyTopAppBar(
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 
-    // Mémorise la langue pour éviter de relire system locale à chaque recomposition
+    // Récupère la LANGUE EFFECTIVE de l'app (AppCompatDelegate d'abord, puis System Locale)
     val currentLanguage = remember(configuration) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            configuration.locales.get(0).language.lowercase()
+        val appLocales = AppCompatDelegate.getApplicationLocales()
+        if (!appLocales.isEmpty) {
+            appLocales.get(0)?.language?.lowercase() ?: "fr"
         } else {
-            @Suppress("DEPRECATION")
-            configuration.locale.language.lowercase()
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                configuration.locales.get(0).language.lowercase()
+            } else {
+                @Suppress("DEPRECATION")
+                configuration.locale.language.lowercase()
+            }
         }
     }
 

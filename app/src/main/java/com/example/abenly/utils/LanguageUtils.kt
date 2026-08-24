@@ -7,10 +7,6 @@ import androidx.core.os.LocaleListCompat
 fun changeLanguage(context: Context, languageCode: String) {
     val appLocale = LocaleListCompat.forLanguageTags(languageCode)
 
-    // Si la langue est déjà celle demandée, on ne fait rien pour éviter un reload inutile
-    val currentLocale = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-    if (currentLocale == languageCode) return
-
-    // Applique la langue : Android gère la recréation propre de l'UI en arrière-plan
+    // Force l'application de la langue sélectionnée
     AppCompatDelegate.setApplicationLocales(appLocale)
 }

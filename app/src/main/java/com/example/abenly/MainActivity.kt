@@ -4,14 +4,14 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity // <-- Remplacement de ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.example.abenly.ui.theme.AbenlyTheme
 import com.example.abenly.utils.NotificationScheduler
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() { // <-- Hérite de AppCompatActivity
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
