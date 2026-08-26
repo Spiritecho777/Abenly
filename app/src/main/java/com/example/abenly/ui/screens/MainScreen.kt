@@ -13,19 +13,48 @@ import androidx.compose.ui.unit.dp
 import com.example.abenly.R
 
 @Composable
-fun MainScreen(onNavigateToCarMaintenance: () -> Unit) {
+fun MainScreen(
+    onNavigateToCarMaintenance: () -> Unit,
+    onNavigateToSubscriptions: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Button(onClick = onNavigateToCarMaintenance) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_car),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(id = R.string.btn_car_maintenance))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+        ) {
+            // Bouton Entretien voiture
+            Button(
+                onClick = onNavigateToCarMaintenance,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_car),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = stringResource(id = R.string.btn_car_maintenance))
+            }
+
+            // Bouton Abonnements
+            Button(
+                onClick = onNavigateToSubscriptions,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_subscription),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = stringResource(id = R.string.btn_subscriptions))
+            }
         }
     }
 }

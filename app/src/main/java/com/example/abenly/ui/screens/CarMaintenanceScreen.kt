@@ -73,190 +73,188 @@ fun CarMaintenanceScreen() {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.btn_car_maintenance)) },
-                actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        // En-tête du tableau avec le bouton '+' intégré et parfaitement aligné
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // En-tête du tableau réutilisant tes clés existantes
-            Row(
+            Text(
+                text = stringResource(id = R.string.btn_car_maintenance),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .weight(1.2f)
+                    .align(Alignment.CenterVertically)
+            )
+
+            Text(
+                text = stringResource(id = R.string.last_action),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .weight(1.5f)
+                    .align(Alignment.CenterVertically)
+            )
+            IconButton(
+                onClick = { showAddDialog = true },
+                modifier = Modifier.size(25.dp)
             ) {
-                Text(
-                    text = stringResource(id = R.string.btn_car_maintenance),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1.2f)
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                Text(
-                    text = stringResource(id = R.string.last_action),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1.5f)
-                )
-            }
-
-            HorizontalDivider()
-
-            // Liste des éléments
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                itemsIndexed(items) { index, item ->
-                    val dueDate = remember(item.lastDoneDate, item.maxMonthsAllowed) {
-                        item.lastDoneDate?.plusMonths(item.maxMonthsAllowed)
-                    }
-
-                    val isOverdue = remember(dueDate) {
-                        dueDate?.let { LocalDate.now().isAfter(it) } ?: false
-                    }
-
-                    val backgroundColor = if (isOverdue) Color(0xFFFFCDD2) else Color.Transparent
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(backgroundColor)
-                            .clickable { selectedIndexForPicker = index }
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Titre : ressource traduit ou nom perso
-                        val titleText = if (item.titleRes != 0) stringResource(id = item.titleRes) else item.key
-                        Text(
-                            text = titleText,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1.2f),
-                            color = if (isOverdue) Color(0xFFB71C1C) else Color.Unspecified
-                        )
-
-                        // Dates : Réalisée et Limite
-                        Column(modifier = Modifier.weight(1.2f)) {
-                            val doneDateText = item.lastDoneDate?.format(dateFormatter) ?: stringResource(id = R.string.select)
-
-                            Text(
-                                text = stringResource(id = R.string.maintenance_done, doneDateText),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (item.lastDoneDate != null) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isOverdue) Color(0xFFB71C1C) else MaterialTheme.colorScheme.primary
-                            )
-
-                            if (dueDate != null) {
-                                Text(
-                                    text = stringResource(id = R.string.maintenance_limit, dueDate.format(dateFormatter)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (isOverdue) Color(0xFFB71C1C) else Color.Gray
-                                )
-                            }
-                        }
-
-                        // Suppression pour les éléments personnalisés
-                        if (item.titleRes == 0) {
-                            IconButton(
-                                onClick = {
-                                    val itemToRemove = items[index]
-                                    items.removeAt(index)
-                                    coroutineScope.launch {
-                                        MaintenancePreferences.removeCustomItem(
-                                            context,
-                                            itemToRemove.key,
-                                            itemToRemove.maxMonthsAllowed
-                                        )
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-                    HorizontalDivider()
-                }
             }
         }
 
-        // Dialogue d'ajout perso (+)
-        if (showAddDialog) {
-            AddCustomItemDialog(
-                onDismiss = { showAddDialog = false },
-                onConfirm = { customTitle, dateMillis, maxMonths ->
-                    val localDate = Instant.ofEpochMilli(dateMillis)
-                        .atZone(ZoneOffset.UTC)
-                        .toLocalDate()
+        HorizontalDivider()
 
-                    val newItem = MaintenanceItem(
-                        key = customTitle,
-                        titleRes = 0,
-                        maxMonthsAllowed = maxMonths,
-                        lastDoneDate = localDate
+        // Liste des éléments
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            itemsIndexed(items) { index, item ->
+                val dueDate = remember(item.lastDoneDate, item.maxMonthsAllowed) {
+                    item.lastDoneDate?.plusMonths(item.maxMonthsAllowed)
+                }
+
+                val isOverdue = remember(dueDate) {
+                    dueDate?.let { LocalDate.now().isAfter(it) } ?: false
+                }
+
+                val backgroundColor = if (isOverdue) Color(0xFFFFCDD2) else Color.Transparent
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(backgroundColor)
+                        .clickable { selectedIndexForPicker = index }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Titre : ressource traduite ou nom perso
+                    val titleText = if (item.titleRes != 0) stringResource(id = item.titleRes) else item.key
+                    Text(
+                        text = titleText,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1.2f),
+                        color = if (isOverdue) Color(0xFFB71C1C) else Color.Unspecified
                     )
 
-                    items.add(newItem)
+                    // Dates : Réalisée et Limite
+                    Column(modifier = Modifier.weight(1.2f)) {
+                        val doneDateText = item.lastDoneDate?.format(dateFormatter) ?: stringResource(id = R.string.select)
 
-                    coroutineScope.launch {
-                        MaintenancePreferences.addCustomItem(context, customTitle, maxMonths)
-                        MaintenancePreferences.saveLastDate(context, customTitle, dateMillis)
-                    }
+                        Text(
+                            text = stringResource(id = R.string.maintenance_done, doneDateText),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (item.lastDoneDate != null) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isOverdue) Color(0xFFB71C1C) else MaterialTheme.colorScheme.primary
+                        )
 
-                    showAddDialog = false
-                }
-            )
-        }
-
-        // DatePicker pour modifier une date
-        selectedIndexForPicker?.let { index ->
-            val datePickerState = rememberDatePickerState()
-
-            DatePickerDialog(
-                onDismissRequest = { selectedIndexForPicker = null },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val selectedDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
-
-                            items[index] = items[index].copy(lastDoneDate = selectedDate)
-
-                            coroutineScope.launch {
-                                MaintenancePreferences.saveLastDate(context, items[index].key, millis)
-                            }
+                        if (dueDate != null) {
+                            Text(
+                                text = stringResource(id = R.string.maintenance_limit, dueDate.format(dateFormatter)),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isOverdue) Color(0xFFB71C1C) else Color.Gray
+                            )
                         }
-                        selectedIndexForPicker = null
-                    }) {
-                        Text("OK")
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { selectedIndexForPicker = null }) {
-                        Text(text = stringResource(id = R.string.cancel))
+
+                    // Suppression pour les éléments personnalisés
+                    if (item.titleRes == 0) {
+                        IconButton(
+                            onClick = {
+                                val itemToRemove = items[index]
+                                items.removeAt(index)
+                                coroutineScope.launch {
+                                    MaintenancePreferences.removeCustomItem(
+                                        context,
+                                        itemToRemove.key,
+                                        itemToRemove.maxMonthsAllowed
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
-            ) {
-                DatePicker(state = datePickerState)
+                HorizontalDivider()
             }
+        }
+    }
+
+    // Dialogue d'ajout perso (+)
+    if (showAddDialog) {
+        AddCustomItemDialog(
+            onDismiss = { showAddDialog = false },
+            onConfirm = { customTitle, dateMillis, maxMonths ->
+                val localDate = Instant.ofEpochMilli(dateMillis)
+                    .atZone(ZoneOffset.UTC)
+                    .toLocalDate()
+
+                val newItem = MaintenanceItem(
+                    key = customTitle,
+                    titleRes = 0,
+                    maxMonthsAllowed = maxMonths,
+                    lastDoneDate = localDate
+                )
+
+                items.add(newItem)
+
+                coroutineScope.launch {
+                    MaintenancePreferences.addCustomItem(context, customTitle, maxMonths)
+                    MaintenancePreferences.saveLastDate(context, customTitle, dateMillis)
+                }
+
+                showAddDialog = false
+            }
+        )
+    }
+
+    // DatePicker pour modifier une date
+    selectedIndexForPicker?.let { index ->
+        val datePickerState = rememberDatePickerState()
+
+        DatePickerDialog(
+            onDismissRequest = { selectedIndexForPicker = null },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val selectedDate = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneOffset.UTC)
+                            .toLocalDate()
+
+                        items[index] = items[index].copy(lastDoneDate = selectedDate)
+
+                        coroutineScope.launch {
+                            MaintenancePreferences.saveLastDate(context, items[index].key, millis)
+                        }
+                    }
+                    selectedIndexForPicker = null
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedIndexForPicker = null }) {
+                    Text(text = stringResource(id = R.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

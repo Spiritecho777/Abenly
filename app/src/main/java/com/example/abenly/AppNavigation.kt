@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.abenly.ui.components.AbenlyTopAppBar
 import com.example.abenly.ui.screens.CarMaintenanceScreen
 import com.example.abenly.ui.screens.MainScreen
+import com.example.abenly.ui.screens.SubscriptionsScreen
 
 @Composable
 fun AppNavigation() {
@@ -19,8 +20,10 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Titre dynamique de la TopAppBar
     val titleRes = when (currentRoute) {
         "car_maintenance" -> R.string.btn_car_maintenance
+        "subscriptions" -> R.string.btn_subscriptions
         else -> R.string.app_name
     }
 
@@ -39,10 +42,16 @@ fun AppNavigation() {
             modifier = Modifier.padding(padding)
         ) {
             composable("main") {
-                MainScreen(onNavigateToCarMaintenance = { navController.navigate("car_maintenance") })
+                MainScreen(
+                    onNavigateToCarMaintenance = { navController.navigate("car_maintenance") },
+                    onNavigateToSubscriptions = { navController.navigate("subscriptions") }
+                )
             }
             composable("car_maintenance") {
                 CarMaintenanceScreen()
+            }
+            composable("subscriptions") {
+                SubscriptionsScreen()
             }
         }
     }

@@ -14,4 +14,10 @@
     <string name="mois">Mois</string>
     <string name="maintenance_done">Fait : %1$s</string>
 	<string name="maintenance_limit">Limite : %1$s</string>
+    <string name="btn_subscriptions">Abonnements</string>
+    <string name="subscription_next_payment">Prochain: %1$s</string>
+    <string name="add_subscription">Ajouter un abonnement</string>
+    <string name="price_label">Prix mensuel (%1$s)</string>
+    <string name="nameSubscription">Nom (ex: Netflix, Amazon, Microsoft)</string>
+    <string name="frequencySubscription">Fréquence (Mois)</string>
 </resources>
