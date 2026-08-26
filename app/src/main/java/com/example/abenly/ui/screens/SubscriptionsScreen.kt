@@ -79,7 +79,7 @@ fun SubscriptionsScreen() {
             }
         }
     }
-//te
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
