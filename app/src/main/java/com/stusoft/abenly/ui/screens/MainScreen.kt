@@ -1,4 +1,4 @@
-package com.example.abenly.ui.screens
+package com.stusoft.abenly.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.abenly.R
+import com.stusoft.abenly.R
 
 @Composable
 fun MainScreen(

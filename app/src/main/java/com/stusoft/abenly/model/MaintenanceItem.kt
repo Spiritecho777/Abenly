@@ -1,4 +1,4 @@
-package com.example.abenly.model
+package com.stusoft.abenly.model
 
 import androidx.annotation.StringRes
 import java.time.LocalDate

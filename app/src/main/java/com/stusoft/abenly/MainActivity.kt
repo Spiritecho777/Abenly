@@ -1,4 +1,4 @@
-package com.example.abenly
+package com.stusoft.abenly
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -8,8 +8,8 @@ import androidx.appcompat.app.AppCompatActivity // <-- Remplacement de Component
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import com.example.abenly.ui.theme.AbenlyTheme
-import com.example.abenly.utils.NotificationScheduler
+import com.stusoft.abenly.ui.theme.AbenlyTheme
+import com.stusoft.abenly.utils.NotificationScheduler
 
 class MainActivity : AppCompatActivity() { // <-- Hérite de AppCompatActivity
 

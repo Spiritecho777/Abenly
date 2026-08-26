@@ -1,4 +1,4 @@
-package com.example.abenly
+package com.stusoft.abenly
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -9,10 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.abenly.ui.components.AbenlyTopAppBar
-import com.example.abenly.ui.screens.CarMaintenanceScreen
-import com.example.abenly.ui.screens.MainScreen
-import com.example.abenly.ui.screens.SubscriptionsScreen
+import com.stusoft.abenly.ui.components.AbenlyTopAppBar
+import com.stusoft.abenly.ui.screens.CarMaintenanceScreen
+import com.stusoft.abenly.ui.screens.MainScreen
+import com.stusoft.abenly.ui.screens.SubscriptionsScreen
 
 @Composable
 fun AppNavigation() {

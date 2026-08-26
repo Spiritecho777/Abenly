@@ -1,4 +1,4 @@
-package com.example.abenly.ui.theme
+package com.stusoft.abenly.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

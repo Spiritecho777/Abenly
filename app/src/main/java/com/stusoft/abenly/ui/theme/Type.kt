@@ -1,4 +1,4 @@
-package com.example.abenly.ui.theme
+package com.stusoft.abenly.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

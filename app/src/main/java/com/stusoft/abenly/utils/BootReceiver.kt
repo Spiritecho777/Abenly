@@ -1,4 +1,4 @@
-package com.example.abenly.utils
+package com.stusoft.abenly.utils
 
 import android.content.BroadcastReceiver
 import android.content.Context

@@ -1,4 +1,4 @@
-package com.example.abenly.ui.theme
+package com.stusoft.abenly.ui.theme
 
 import android.app.Activity
 import android.os.Build

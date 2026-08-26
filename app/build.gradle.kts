@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.abenly"
+    namespace = "com.stusoft.abenly"
     compileSdk {
         version = release(37) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.abenly"
+        applicationId = "com.stusoft.abenly"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -23,7 +23,6 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -31,6 +30,7 @@ android {
             )
         }
     }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
@@ -39,6 +39,10 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+base {
+    archivesName.set("abenly")
 }
 
 dependencies {

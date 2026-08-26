@@ -1,4 +1,4 @@
-package com.example.abenly.ui.components
+package com.stusoft.abenly.ui.components
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material.icons.Icons
@@ -9,8 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.example.abenly.R
-import com.example.abenly.utils.changeLanguage
+import com.stusoft.abenly.R
+import com.stusoft.abenly.utils.changeLanguage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

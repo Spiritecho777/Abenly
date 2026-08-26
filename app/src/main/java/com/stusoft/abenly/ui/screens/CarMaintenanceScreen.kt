@@ -1,4 +1,4 @@
-package com.example.abenly.ui.screens
+package com.stusoft.abenly.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,9 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.abenly.R
-import com.example.abenly.model.MaintenanceItem
-import com.example.abenly.utils.MaintenancePreferences
+import com.stusoft.abenly.R
+import com.stusoft.abenly.model.MaintenanceItem
+import com.stusoft.abenly.utils.MaintenancePreferences
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.Instant
