@@ -18,7 +18,13 @@
     <string name="btn_subscriptions">Subscriptions</string>
     <string name="subscription_next_payment">Next: %1$s</string>
     <string name="add_subscription">Add subscription</string>
-    <string name="price_label">Monthly price (%1$s)</string>
+    <string name="price_label">Price (%1$s)</string>
     <string name="nameSubscription">Name (ex: Netflix, Amazon, Microsoft)</string>
-    <string name="frequencySubscription">Frequency (Month)</string>
+    <string name="periodicity_daily">Daily</string>
+    <string name="periodicity_monthly">Monthly</string>
+    <string name="periodicity_quarterly">Quarterly</string>
+    <string name="periodicity_semiannually">Semi-annually</string>
+    <string name="periodicity_annually">Annually</string>
+    <string name="periodicity_label">Periodicity</string>
+    <string name="total_annually">Annual total</string>
 </resources>

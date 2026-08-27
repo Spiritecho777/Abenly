@@ -1,7 +1,6 @@
 package com.stusoft.abenly.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -17,65 +16,105 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.stusoft.abenly.R
-import com.stusoft.abenly.model.SubscriptionItem
 import com.stusoft.abenly.utils.SubscriptionPreferences
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.Currency
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Taux de conversion fixe (1 € = X $)
+private const val EUR_TO_USD_RATE = 1.08
+
+data class SimpleSubscription(
+    val name: String,
+    val priceInEur: Double,
+    val periodicityRes: Int
+)
+
+enum class SubscriptionPeriodicity(
+    val id: String,
+    val labelRes: Int,
+    val annualFactor: Double
+) {
+    DAILY("daily", R.string.periodicity_daily, 365.0),
+    MONTHLY("monthly", R.string.periodicity_monthly, 12.0),
+    QUARTERLY("quarterly", R.string.periodicity_quarterly, 4.0),
+    SEMIANNUALLY("semiannually", R.string.periodicity_semiannually, 2.0),
+    ANNUALLY("annually", R.string.periodicity_annually, 1.0);
+
+    companion object {
+        fun fromId(id: String): SubscriptionPeriodicity {
+            return entries.find { it.id == id } ?: MONTHLY
+        }
+
+        fun fromResId(resId: Int): SubscriptionPeriodicity {
+            return entries.find { it.labelRes == resId } ?: MONTHLY
+        }
+    }
+}
+
 @Composable
 fun SubscriptionsScreen() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
 
-    // Formateur monétaire natif et symbole de devise selon la région du téléphone
-    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) }
-    val currencySymbol = remember {
+    // Détection de la langue/devise actuelle
+    val currentLocale = Locale.getDefault()
+    val isDollarZone = currentLocale.language == "en" || currentLocale.country == "US"
+
+    // Formateur monétaire selon le système
+    val currencyFormatter = remember(currentLocale) { NumberFormat.getCurrencyInstance(currentLocale) }
+    val currencySymbol = remember(currentLocale) {
         try {
-            val currency = Currency.getInstance(Locale.getDefault())
+            val currency = Currency.getInstance(currentLocale)
             when (currency.currencyCode) {
                 "USD" -> "$"
                 "EUR" -> "€"
-                else -> currency.symbol.takeIf { it != "¤" } ?: "€"
+                else -> currency.symbol.takeIf { it != "¤" } ?: (if (isDollarZone) "$" else "€")
             }
         } catch (e: Exception) {
-            "€"
+            if (isDollarZone) "$" else "€"
         }
     }
 
-    val subscriptions = remember { mutableStateListOf<SubscriptionItem>() }
+    // Convertisseur selon la langue (les prix en base restent stockés en EUR)
+    fun convertPrice(priceInEur: Double): Double {
+        return if (isDollarZone) priceInEur * EUR_TO_USD_RATE else priceInEur
+    }
 
+    fun convertToEur(displayPrice: Double): Double {
+        return if (isDollarZone) displayPrice / EUR_TO_USD_RATE else displayPrice
+    }
+
+    val subscriptions = remember { mutableStateListOf<SimpleSubscription>() }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedIndexForPicker by remember { mutableStateOf<Int?>(null) }
 
-    // Chargement des données
+    // Calcul du total annuel converti
+    val totalAnnuallyInEur = subscriptions.sumOf { item ->
+        val periodicity = SubscriptionPeriodicity.fromResId(item.periodicityRes)
+        item.priceInEur * periodicity.annualFactor
+    }
+    val totalAnnuallyConverted = convertPrice(totalAnnuallyInEur)
+
+    // Chargement initial des données
     LaunchedEffect(Unit) {
         val customItemsSet = SubscriptionPreferences.getCustomSubscriptions(context).firstOrNull() ?: emptySet()
         customItemsSet.forEach { itemString ->
             val parts = itemString.split("|")
             val name = parts.getOrNull(0) ?: ""
-            val months = parts.getOrNull(1)?.toLongOrNull() ?: 1L
-            val price = parts.getOrNull(2)?.toDoubleOrNull() ?: 0.0
+            val periodicityId = parts.getOrNull(1) ?: "monthly"
+            val priceEur = parts.getOrNull(2)?.toDoubleOrNull() ?: 0.0
 
-            if (name.isNotBlank() && subscriptions.none { it.key == name }) {
-                subscriptions.add(SubscriptionItem(key = name, price = price, maxMonthsAllowed = months))
-            }
-        }
-
-        subscriptions.forEachIndexed { index, item ->
-            val savedTimestamp = SubscriptionPreferences.getLastDate(context, "sub_${item.key}").firstOrNull()
-            if (savedTimestamp != null) {
-                val localDate = Instant.ofEpochMilli(savedTimestamp)
-                    .atZone(ZoneOffset.UTC)
-                    .toLocalDate()
-                subscriptions[index] = subscriptions[index].copy(lastDoneDate = localDate)
+            if (name.isNotBlank() && subscriptions.none { it.name == name }) {
+                val periodicity = SubscriptionPeriodicity.fromId(periodicityId)
+                subscriptions.add(
+                    SimpleSubscription(
+                        name = name,
+                        priceInEur = priceEur,
+                        periodicityRes = periodicity.labelRes
+                    )
+                )
             }
         }
     }
@@ -88,13 +127,14 @@ fun SubscriptionsScreen() {
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // En-tête
+            // En-tête du tableau
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = stringResource(id = R.string.btn_subscriptions),
@@ -103,10 +143,10 @@ fun SubscriptionsScreen() {
                     modifier = Modifier.weight(1.2f)
                 )
                 Text(
-                    text = stringResource(id = R.string.last_action),
+                    text = stringResource(id = R.string.periodicity_label),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1.5f)
+                    modifier = Modifier.weight(1.2f)
                 )
                 IconButton(
                     onClick = { showAddDialog = true },
@@ -122,63 +162,54 @@ fun SubscriptionsScreen() {
 
             HorizontalDivider()
 
-            // Liste des éléments
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            // Liste d'abonnements
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(bottom = 8.dp)
+            ) {
                 itemsIndexed(subscriptions) { index, item ->
-                    val nextPaymentDate = remember(item.lastDoneDate, item.maxMonthsAllowed) {
-                        item.lastDoneDate?.plusMonths(item.maxMonthsAllowed)
-                    }
+                    val convertedPrice = convertPrice(item.priceInEur)
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { selectedIndexForPicker = index }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Nom & Prix formaté
+                        // Nom & Prix (converti dynamiquement selon la langue)
                         Column(modifier = Modifier.weight(1.2f)) {
                             Text(
-                                text = item.key,
+                                text = item.name,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold
                             )
-                            if (item.price > 0.0) {
+                            if (item.priceInEur > 0.0) {
                                 Text(
-                                    text = currencyFormatter.format(item.price),
+                                    text = currencyFormatter.format(convertedPrice),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.outline
                                 )
                             }
                         }
 
-                        // Dates de réalisation & d'échéance
-                        Column(modifier = Modifier.weight(1.2f)) {
-                            val doneDateText = item.lastDoneDate?.format(dateFormatter) ?: stringResource(id = R.string.select)
-                            Text(
-                                text = stringResource(id = R.string.maintenance_done, doneDateText),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (item.lastDoneDate != null) FontWeight.Bold else FontWeight.Normal,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                        // Périodicité
+                        Text(
+                            text = stringResource(id = item.periodicityRes),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.weight(1.2f)
+                        )
 
-                            if (nextPaymentDate != null) {
-                                Text(
-                                    text = stringResource(id = R.string.subscription_next_payment, nextPaymentDate.format(dateFormatter)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-
-                        // Action suppression
+                        // Supprimer
                         IconButton(
                             onClick = {
                                 val itemToRemove = subscriptions[index]
                                 subscriptions.removeAt(index)
                                 coroutineScope.launch {
-                                    val itemKeyFormatted = "${itemToRemove.key}|${itemToRemove.maxMonthsAllowed}|${itemToRemove.price}"
+                                    val periodicityEnum = SubscriptionPeriodicity.fromResId(itemToRemove.periodicityRes)
+                                    val itemKeyFormatted = "${itemToRemove.name}|${periodicityEnum.id}|${itemToRemove.priceInEur}"
                                     SubscriptionPreferences.removeCustomSubscription(context, itemKeyFormatted)
                                 }
                             }
@@ -193,70 +224,71 @@ fun SubscriptionsScreen() {
                     HorizontalDivider()
                 }
             }
+
+            // Total Annuel
+            if (subscriptions.isNotEmpty()) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    tonalElevation = 2.dp
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.total_annually),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = currencyFormatter.format(totalAnnuallyConverted),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
         }
 
-        // Dialogue de saisie
+        // Dialogue d'ajout
         if (showAddDialog) {
             AddSubscriptionDialog(
                 currencySymbol = currencySymbol,
                 onDismiss = { showAddDialog = false },
-                onConfirm = { name, price, dateMillis, months ->
-                    val localDate = Instant.ofEpochMilli(dateMillis)
-                        .atZone(ZoneOffset.UTC)
-                        .toLocalDate()
+                onConfirm = { name, inputPrice, periodicity ->
+                    // Si l'utilisateur saisit en $, on convertit la valeur saisie en EUR avant de la stocker
+                    val priceInEur = convertToEur(inputPrice)
 
-                    val newItem = SubscriptionItem(
-                        key = name,
-                        price = price,
-                        maxMonthsAllowed = months,
-                        lastDoneDate = localDate
+                    subscriptions.add(
+                        SimpleSubscription(
+                            name = name,
+                            priceInEur = priceInEur,
+                            periodicityRes = periodicity.labelRes
+                        )
                     )
 
-                    subscriptions.add(newItem)
-
                     coroutineScope.launch {
-                        val customString = "$name|$months|$price"
+                        val customString = "$name|${periodicity.id}|$priceInEur"
                         SubscriptionPreferences.addCustomSubscription(context, customString)
-                        SubscriptionPreferences.saveLastDate(context, "sub_$name", dateMillis)
                     }
 
                     showAddDialog = false
                 }
             )
-        }
-
-        // Picker de modification de date
-        selectedIndexForPicker?.let { index ->
-            val datePickerState = rememberDatePickerState()
-
-            DatePickerDialog(
-                onDismissRequest = { selectedIndexForPicker = null },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val selectedDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
-
-                            subscriptions[index] = subscriptions[index].copy(lastDoneDate = selectedDate)
-
-                            coroutineScope.launch {
-                                SubscriptionPreferences.saveLastDate(context, "sub_${subscriptions[index].key}", millis)
-                            }
-                        }
-                        selectedIndexForPicker = null
-                    }) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { selectedIndexForPicker = null }) {
-                        Text(text = stringResource(id = R.string.cancel))
-                    }
-                }
-            ) {
-                DatePicker(state = datePickerState)
-            }
         }
     }
 }
@@ -266,15 +298,12 @@ fun SubscriptionsScreen() {
 private fun AddSubscriptionDialog(
     currencySymbol: String,
     onDismiss: () -> Unit,
-    onConfirm: (name: String, price: Double, lastDateMillis: Long, months: Long) -> Unit
+    onConfirm: (name: String, price: Double, periodicity: SubscriptionPeriodicity) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var priceText by remember { mutableStateOf("") }
-    var monthsText by remember { mutableStateOf("1") }
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = System.currentTimeMillis()
-    )
+    var selectedPeriodicity by remember { mutableStateOf(SubscriptionPeriodicity.MONTHLY) }
+    var expandedDropdown by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -297,23 +326,44 @@ private fun AddSubscriptionDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                OutlinedTextField(
-                    value = monthsText,
-                    onValueChange = { monthsText = it.filter { char -> char.isDigit() } },
-                    label = { Text(text = stringResource(id = R.string.frequencySubscription)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded = expandedDropdown,
+                    onExpandedChange = { expandedDropdown = !expandedDropdown }
+                ) {
+                    OutlinedTextField(
+                        value = stringResource(id = selectedPeriodicity.labelRes),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(text = stringResource(id = R.string.periodicity_label)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expandedDropdown,
+                        onDismissRequest = { expandedDropdown = false }
+                    ) {
+                        SubscriptionPeriodicity.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(text = stringResource(id = option.labelRes)) },
+                                onClick = {
+                                    selectedPeriodicity = option
+                                    expandedDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
-                enabled = name.isNotBlank() && monthsText.isNotBlank(),
+                enabled = name.isNotBlank(),
                 onClick = {
-                    val millis = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
-                    val months = monthsText.toLongOrNull() ?: 1L
                     val price = priceText.toDoubleOrNull() ?: 0.0
-                    onConfirm(name.trim(), price, millis, months)
+                    onConfirm(name.trim(), price, selectedPeriodicity)
                 }
             ) {
                 Text("OK")
